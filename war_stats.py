@@ -2,11 +2,10 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import csv
 
-def get_cycle_size_multiples(all_cycle_sizes, nb_cards):
-    return [ cycle_size/nb_cards for cycle_size in sorted(list(set(all_cycle_sizes))) ]
-
-def print_stats():
+def print_stats(nb_values, nb_colors, all_endings, all_nb_tours, all_cycle_sizes, all_before_cycle_size):
+    print("====== Values : %s, Colors : %s ======" %(nb_values, nb_colors))
     # Endings
     sorted_all_endings = sorted(all_endings)
     endings_counter = Counter(sorted_all_endings)
@@ -24,7 +23,7 @@ def print_stats():
 
     # Link between the two
     print("=== Finite games ===")
-    proportion_finite_games = len(all_nb_tours)/nb_games*100
+    proportion_finite_games = len(all_nb_tours)/len(all_endings)*100
     print("Proportion of finite games in all games : %.2f%%" %(proportion_finite_games))
 
     # Cycles
@@ -43,6 +42,9 @@ def print_stats():
 
     # plt.hist(all_cycle_sizes, bins=1000)
     # plt.show()
+
+def get_cycle_size_multiples(all_cycle_sizes, nb_cards):
+    return [ cycle_size/nb_cards for cycle_size in sorted(list(set(all_cycle_sizes))) ]
 
 def cycles_to_csv(all_cycle_sizes, nb_colors, nb_values, max_nb_values, max_nb_colors):
     nb_cards = nb_colors * nb_values
@@ -63,3 +65,46 @@ def cycles_to_csv(all_cycle_sizes, nb_colors, nb_values, max_nb_values, max_nb_c
     else:
         my_data[nb_colors-1, nb_values-1] = "NONE"
     np.savetxt(file_path, my_data, delimiter=";", fmt='%s')
+
+def format_output_values(nb_values, nb_colors, all_endings, all_nb_tours, all_cycle_sizes):
+    endings_counter = Counter(all_endings)
+
+    all_cycle_sizes = [ cycle_size/(nb_values*nb_colors) for cycle_size in all_cycle_sizes ]
+    sorted_all_cycle_sizes = sorted(all_cycle_sizes)
+    cycle_counter = Counter(sorted_all_cycle_sizes)
+
+    output_values = [
+        nb_values,
+        nb_colors,
+        nb_colors*nb_values,
+        endings_counter["1 wins"],
+        endings_counter["2 wins"],
+        endings_counter["Cycle"],
+        endings_counter["Equality"],
+        len(all_nb_tours),
+        len(all_cycle_sizes),
+        ",".join(map(str, cycle_counter.keys())),
+        ",".join(map(str, cycle_counter.values()))
+    ]
+    return output_values
+
+def to_csv(all_output_values):
+    output_path = os.path.join("data", "out.csv")
+    output_header = [
+        "NB_VALUES", 
+        "NB_COLORS", 
+        "NB_CARDS",
+        "ENDINGS_1_WINS", 
+        "ENDINGS_2_WINS", 
+        "ENDINGS_CYCLE", 
+        "ENDINGS_EQUALITY", 
+        "NB_GAMES_FINISHED",
+        "NB_GAMES_CYCLE",
+        "CYCLES_MULTIPLE_OF_NB_CARDS",
+        "CYCLES_NUMBER_FOUND"
+    ]
+
+    with open(output_path, "wt") as f:
+        writer = csv.writer(f)
+        writer.writerow(output_header)
+        writer.writerows(all_output_values)
