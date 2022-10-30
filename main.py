@@ -34,10 +34,10 @@ def play_multiple_games(nb_values, nb_colors):
     return all_endings, all_nb_tours, all_cycle_sizes, all_before_cycle_size
 
 def play_ensemble_games():
-    max_nb_values = 7
-    max_nb_colors = 7
+    max_nb_values = 10
+    max_nb_colors = 10
     all_output_values = []
-    for nb_values in range(1, max_nb_values+1):
+    for nb_values in tqdm.tqdm(range(1, max_nb_values+1)):
         for nb_colors in range(1, max_nb_colors+1):
             all_endings, all_nb_tours, all_cycle_sizes, all_before_cycle_size = play_multiple_games(nb_values, nb_colors)
             all_output_values.append(war_stats.format_output_values(nb_values, nb_colors, all_endings, all_nb_tours, all_cycle_sizes))
